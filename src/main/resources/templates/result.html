@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Countdown Game - Results</title>
+    <!-- Include Bootstrap stylesheets -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* styles.css */
+
+        /* Style for the body element to set the background image and center the content */
+        body {
+            /* Replace 'images/countdown2.jpg' with the path to your image inside the 'static' directory */
+            background-image: url('/images/countdown2.jpg');
+            background-size: cover; /* Adjust the background size to cover the entire page */
+            background-repeat: no-repeat; /* Prevent the background image from repeating */
+            background-position: center center; /* Center the background image both horizontally and vertically */
+            background-attachment: fixed; /* Fix the background image, so it doesn't scroll with the page */
+            /* Optionally, you can set a background color in case the image is unavailable or takes time to load */
+            background-color: #f2f2f2;
+            color: black; /* Set text color to black */
+            text-align: center; /* Center-align text */
+            min-height: 100vh; /* Set the minimum height of the body to 100% of the viewport height */
+            display: flex; /* Use flexbox for layout */
+            flex-direction: column; /* Arrange elements in a column */
+            align-items: center; /* Center the content horizontally */
+            justify-content: center; /* Center the content vertically */
+            padding-top: 50px; /* Add padding to the top of the body */
+        }
+
+        /* Style for the heading to make it even bigger and white */
+        h1 {
+            font-size: 30px; /* Reduce header font size */
+            margin-top: 0;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            font-size: 20px; /* Reduce font size for list items */
+            margin-bottom: 5px; /* Reduce spacing between list items */
+        }
+
+        /* Additional style for the "Back to the form" button */
+        .back-btn {
+            margin-top: 20px;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1; /* Set the z-index to 1 to make sure it appears on top of the content */
+        }
+
+        /* Add a semi-transparent background for the content to make the text more readable */
+        .content-background {
+            background-color: rgba(255, 255, 255, 0.7); /* Set the background color with transparency */
+            padding: 20px; /* Add padding to the content */
+            border-radius: 10px; /* Add rounded corners */
+            position: relative; /* Set the position to relative for proper stacking */
+            z-index: 2; /* Set the z-index to 2 to position it above the background image */
+        }
+
+    </style>
+</head>
+<body>
+<div class="content-background">
+    <h1>Countdown Game - Results</h1>
+    <p>Number of valid words found: <span th:text="${numberOfWords}"></span></p>
+
+    <h2>Words by Length:</h2>
+    <ul>
+        <li th:each="entry : ${wordLengthCount}">
+            <span th:if="${entry.value > 0}" th:text="${entry.key + ' letters: ' + entry.value + ' words'}"></span>
+        </li>
+    </ul>
+
+    <h2>List of Valid Words:</h2>
+    <ul>
+        <li th:each="word : ${foundWords}">
+            <span th:text="${word}"></span>
+        </li>
+    </ul>
+</div>
+
+<!-- "Back to the form" button -->
+<a href="/" class="btn btn-primary btn-sm back-btn">Back to the form</a>
+
+<!-- Include Bootstrap scripts -->
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</body>
+</html>
