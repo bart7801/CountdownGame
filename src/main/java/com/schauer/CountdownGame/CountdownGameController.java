@@ -6,7 +6,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,8 +40,16 @@ public class CountdownGameController {
 
         String letters = formData.getLetters().toLowerCase(); // Get the set of letters from the form
         String language = formData.getLanguage(); // Get the selected language from the form
-        String dictionaryFileName = language.equals("english") ? "englishdictionary.txt" : "polishdictionary.txt";
-        allWords = readDictionaryFromFile(dictionaryFileName); // Update the dictionary based on the selected language
+        Map<String, String> wordDefinitions = new HashMap<>();
+        if ("english".equals(language)) {
+            wordDefinitions = readDictionaryWithDefinitions("Oxford English Dictionary.txt");
+            allWords = new ArrayList<>(wordDefinitions.keySet());
+            if (allWords.isEmpty()) {
+                allWords = readDictionaryFromFile("englishdictionary.txt");
+            }
+        } else {
+            allWords = readDictionaryFromFile("polishdictionary.txt");
+        }
 
         int maxLength = letters.length();
         List<String> validWords = new ArrayList<>();
@@ -50,6 +64,11 @@ public class CountdownGameController {
         // Sort words from longest to shortest, and in case of the same length - alphabetically
         validWords.sort(new WordComparator());
 
+        List<WordResult> wordResults = new ArrayList<>();
+        for (String word : validWords) {
+            wordResults.add(new WordResult(word, wordDefinitions.get(word)));
+        }
+
         // Sort the wordLengthCount map by key (word length) in reverse order to get the longest words first
         Map<Integer, Integer> sortedWordLengthCount = wordLengthCount.entrySet()
                 .stream()
@@ -60,6 +79,7 @@ public class CountdownGameController {
         model.addAttribute("foundWords", validWords); // Add the list of valid words to the model
         model.addAttribute("numberOfWords", validWords.size()); // Add the number of valid words to the model
         model.addAttribute("wordLengthCount", sortedWordLengthCount); // Add the word length count to the model
+        model.addAttribute("wordResults", wordResults); // Add words paired with definitions for display
 
         // Save the words to the file
         String outputFileName = "words_with_given_letters.txt";
@@ -73,10 +93,43 @@ public class CountdownGameController {
     // Method to read the dictionary from a text file in the "resources" folder
     private List<String> readDictionaryFromFile(String filename) {
         List<String> words = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream(filename)))) {
+        InputStream dictionaryStream = getClass().getClassLoader().getResourceAsStream(filename);
+        if (dictionaryStream == null) {
+            return words;
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(dictionaryStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 words.add(line.toLowerCase());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return words;
+    }
+
+    private Map<String, String> readDictionaryWithDefinitions(String filename) {
+        Map<String, String> words = new LinkedHashMap<>();
+        InputStream dictionaryStream = getClass().getClassLoader().getResourceAsStream(filename);
+        if (dictionaryStream == null) {
+            return words;
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(dictionaryStream))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String trimmedLine = line.trim();
+                if (trimmedLine.isEmpty()) {
+                    continue;
+                }
+                int separatorIndex = trimmedLine.indexOf("  ");
+                if (separatorIndex == -1) {
+                    continue;
+                }
+                String word = trimmedLine.substring(0, separatorIndex).trim().toLowerCase();
+                String definition = trimmedLine.substring(separatorIndex).trim();
+                if (!word.isEmpty()) {
+                    words.put(word, definition);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -122,30 +175,6 @@ public class CountdownGameController {
         }
     }
 
-    // FormData class to represent the form data for the "index" page
-    // It has two fields: "letters" to store the set of letters entered by the user in the form
-    // and "language" to store the selected language (Polish or English)
-    public static class FormData {
-        private String letters;
-        private String language;
-
-        public String getLetters() {
-            return letters;
-        }
-
-        public void setLetters(String letters) {
-            this.letters = letters;
-        }
-
-        public String getLanguage() {
-            return language;
-        }
-
-        public void setLanguage(String language) {
-            this.language = language;
-        }
-    }
-
     // Method to save words to a text file
     private void saveWordsToFile(List<String> words, String filename) {
         String absolutePath = System.getProperty("user.dir") + File.separator + filename;
@@ -155,6 +184,24 @@ public class CountdownGameController {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static class WordResult {
+        private final String word;
+        private final String definition;
+
+        public WordResult(String word, String definition) {
+            this.word = word;
+            this.definition = definition;
+        }
+
+        public String getWord() {
+            return word;
+        }
+
+        public String getDefinition() {
+            return definition;
         }
     }
 }

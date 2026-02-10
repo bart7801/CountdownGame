@@ -40,7 +40,11 @@ public class CountdownGame {
     // Method to read the dictionary from a text file in the "resources" folder
     private static List<String> readDictionaryFromFile(String filename) {
         List<String> words = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(CountdownGame.class.getResourceAsStream("/" + filename)))) {
+        InputStream dictionaryStream = CountdownGame.class.getResourceAsStream("/" + filename);
+        if (dictionaryStream == null) {
+            return words;
+        }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(dictionaryStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 words.add(line.toLowerCase());

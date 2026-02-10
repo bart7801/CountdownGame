@@ -78,8 +78,9 @@
 
     <h2>List of Valid Words:</h2>
     <ul>
-        <li th:each="word : ${foundWords}">
-            <span th:text="${word}"></span>
+        <li th:each="result : ${wordResults}">
+            <strong th:text="${result.word}"></strong>
+            <span th:if="${result.definition}"> - <span th:text="${result.definition}"></span></span>
         </li>
     </ul>
 </div>
